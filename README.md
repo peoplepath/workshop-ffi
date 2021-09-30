@@ -13,3 +13,9 @@ Ke spuštění budete potřebovat Docker a Docker compose. Pokud docker nemáte 
 ```bash
 docker-compose run cli
 ```
+
+## Prezentace
+http://bohuslav.simek.si/plzen-ffi-workshop/
+
+## Článek (v angličtině)
+https://phpconference.com/blog/php-ffi-and-what-it-can-do-for-you/

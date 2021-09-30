@@ -1,5 +1,56 @@
 <?php
 
+$duckDbFFI = FFI::load('duckdb-ffi2.h');
+
+$database   = $duckDbFFI->new("duckdb_database");
+$connection = $duckDbFFI->new("duckdb_connection");
+
+$result = $duckDbFFI->duckdb_open(null, FFI::addr($database));
+
+if ($result === $duckDbFFI->DuckDBError) {
+    throw new Exception('Cannot open database');
+}
+
+$result = $duckDbFFI->duckdb_connect($database, FFI::addr($connection));
+
+if ($result === $duckDbFFI->DuckDBError) {
+    throw new Exception('Cannot connect to database');
+}
+
+$result = $duckDbFFI->duckdb_query($connection, 'CREATE TABLE integers(i INTEGER, j INTEGER);', null);
+
+if ($result === $duckDbFFI->DuckDBError) {
+    throw new Exception('Cannot execute query');
+}
+
+$result = $duckDbFFI->duckdb_query($connection, 'INSERT INTO integers VALUES (3,4), (5,6), (7, NULL) ', null);
+
+if ($result === $duckDbFFI->DuckDBError) {
+    throw new Exception('Cannot execute query');
+}
+
+$queryResult = $duckDbFFI->new('duckdb_result');
+
+$result = $duckDbFFI->duckdb_query($connection, 'SELECT * FROM integers; ', FFI::addr($queryResult));
+
+if ($result === $duckDbFFI->DuckDBError) {
+    echo FFI::string($queryResult->error_message);
+    die;
+}
+
+for ($row = 0; $row < $queryResult->row_count; $row++) {
+    for ($column = 0; $column < $queryResult->column_count; $column++) {
+        $value = $duckDbFFI->duckdb_value_varchar(FFI::addr($queryResult), $column, $row);
+        echo FFI::string($value)." ";
+        $duckDbFFI->duckdb_free($value);
+    }
+
+    echo "\n";
+}
+
+$duckDbFFI->duckdb_destroy_result(FFI::addr($queryResult));
+$duckDbFFI->duckdb_disconnect(FFI::addr($connection));
+$duckDbFFI->duckdb_close(FFI::addr($database));
 
 /*
 #include "duckdb.h"
